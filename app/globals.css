@@ -1,0 +1,85 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  color-scheme: light;
+  /* Altura de la barra inferior + FAB, para reservar hueco al final del scroll. */
+  --barra-inferior: 62px;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  @apply bg-white text-gris-900 font-sans antialiased;
+  /* Sin rebote elástico raro cuando la app corre en standalone. */
+  overscroll-behavior-y: none;
+}
+
+/* Nada de zoom automático de Safari al enfocar inputs: 16px mínimo. */
+input,
+select,
+textarea,
+button {
+  font-size: 16px;
+}
+
+@layer components {
+  .tarjeta {
+    @apply rounded-tarjeta bg-gris-50 border border-gris-200;
+  }
+
+  .cifra {
+    @apply text-cifra font-semibold tabular-nums tracking-tight;
+  }
+
+  .etiqueta {
+    @apply text-[11px] font-semibold uppercase tracking-[0.08em] text-gris-400;
+  }
+
+  .chip {
+    @apply inline-flex items-center gap-1.5 rounded-full border border-gris-200 px-3 py-1.5 text-sm text-gris-600 transition-colors;
+  }
+
+  .chip-activo {
+    @apply bg-gris-900 text-white border-gris-900;
+  }
+
+  .insignia {
+    @apply rounded-full px-2 py-0.5 text-[11px] font-semibold;
+  }
+
+  .boton-primario {
+    @apply flex w-full items-center justify-center rounded-xl bg-acento px-4 py-3.5 text-[15px] font-semibold text-white transition-colors hover:bg-acento-hover active:bg-acento-hover disabled:opacity-40;
+  }
+
+  .campo {
+    @apply w-full rounded-xl border border-gris-200 bg-white px-3 py-2.5 text-[15px] outline-none placeholder:text-gris-400 focus:border-acento;
+  }
+
+  /* Scroll horizontal sin barra visible (filas de chips). */
+  .sin-scrollbar {
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+
+  .sin-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+
+  /* Áreas seguras del iPhone en modo standalone. */
+  .pad-seguro-arriba {
+    padding-top: max(1rem, env(safe-area-inset-top));
+  }
+
+  .pad-seguro-abajo {
+    padding-bottom: calc(var(--barra-inferior) + env(safe-area-inset-bottom) + 1.5rem);
+  }
+}
+
+/* El texto de recharts hereda la tipografía del sistema. */
+.recharts-text {
+  font-family: inherit;
+}
