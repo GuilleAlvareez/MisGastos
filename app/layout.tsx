@@ -5,6 +5,7 @@ import { HojaMovimientoProvider } from '@/components/HojaMovimiento';
 import { MesProvider } from '@/components/layout/MesContext';
 import Sidebar from '@/components/layout/Sidebar';
 import TabBar from '@/components/layout/TabBar';
+import PuertaAuth from '@/components/PuertaAuth';
 import RegistrarSW from '@/components/RegistrarSW';
 
 export const metadata: Metadata = {
@@ -43,21 +44,24 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="es">
       <body>
-        <MesProvider>
-          <HojaMovimientoProvider>
-            <div className="flex min-h-screen">
-              <Sidebar />
-              <main className="min-w-0 flex-1">
-                <div className="mx-auto w-full max-w-2xl px-5 pad-seguro-arriba pad-seguro-abajo md:pb-10">
-                  {children}
-                </div>
-              </main>
-            </div>
-            <TabBar />
-            <RegistrarSW />
-            <AlertasPresupuesto />
-          </HojaMovimientoProvider>
-        </MesProvider>
+        {/* Sin NEXT_PUBLIC_AUTH_REQUERIDO no hace nada: deja pasar y no consulta sesión. */}
+        <PuertaAuth>
+          <MesProvider>
+            <HojaMovimientoProvider>
+              <div className="flex min-h-screen">
+                <Sidebar />
+                <main className="min-w-0 flex-1">
+                  <div className="mx-auto w-full max-w-2xl px-5 pad-seguro-arriba pad-seguro-abajo md:pb-10">
+                    {children}
+                  </div>
+                </main>
+              </div>
+              <TabBar />
+              <RegistrarSW />
+              <AlertasPresupuesto />
+            </HojaMovimientoProvider>
+          </MesProvider>
+        </PuertaAuth>
       </body>
     </html>
   );

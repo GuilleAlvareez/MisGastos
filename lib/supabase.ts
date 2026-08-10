@@ -17,7 +17,16 @@ export const ERROR_SIN_CONFIG =
 export const ERROR_SIN_PERMISO =
   'La base de datos ha rechazado el cambio sin dar detalles: la tabla no tiene política de RLS para esta operación. Ejecuta supabase/schema.sql en Supabase.';
 
+/**
+ * Modo multiusuario. Apagado por defecto: la app nació para un solo usuario con
+ * políticas de RLS abiertas, y encenderlo sin haber ejecutado `supabase/auth.sql`
+ * dejaría la sesión pidiendo credenciales contra una base que no las usa.
+ */
+export const authRequerido = process.env.NEXT_PUBLIC_AUTH_REQUERIDO === 'true';
+
 // Placeholder para que el build no reviente cuando aún no hay .env.
 export const supabase = createClient(url || 'http://localhost:54321', anonKey || 'anon-placeholder', {
-  auth: { persistSession: false },
+  // Solo se guarda la sesión si hay sesión que guardar: sin auth, la app no
+  // debe dejar nada en el almacenamiento del navegador.
+  auth: { persistSession: authRequerido, autoRefreshToken: authRequerido },
 });

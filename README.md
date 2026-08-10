@@ -47,9 +47,17 @@ Dos detalles del modelo que condicionan el código:
 - El límite de un mes sale de `presupuestos`; si ese mes no tiene registro, se cae
   al `presupuesto_mensual` de la categoría. Toda la app respeta ese *fallback*.
 
-**Seguridad:** las políticas de RLS son abiertas para el rol `anon`, es decir, la
-app asume un único usuario de confianza. Si vas a publicarla en una URL accesible
-desde fuera, cierra el acceso siguiendo `supabase/auth.sql`.
+**Seguridad:** por defecto las políticas de RLS son abiertas para el rol `anon`, es
+decir, la app asume un único usuario de confianza y cualquiera con la URL puede leer
+y escribir. Si vas a publicarla en una URL accesible desde fuera:
+
+1. Ejecuta `supabase/auth.sql`, que añade `user_id` a las cuatro tablas y sustituye
+   las políticas abiertas por políticas por usuario.
+2. Pon `NEXT_PUBLIC_AUTH_REQUERIDO=true` en el `.env`.
+
+A partir de ahí la app pide acceso al arrancar. Los usuarios se dan de alta en el
+panel de Supabase, no desde la app. Mientras la variable esté apagada, nada de esto
+se activa y ni siquiera se consulta la sesión.
 
 ## Estructura
 

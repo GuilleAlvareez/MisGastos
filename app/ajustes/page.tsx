@@ -3,8 +3,10 @@
 import { useEffect, useState } from 'react';
 import Header from '@/components/layout/Header';
 import { useAjustes } from '@/hooks/useAjustes';
+import { useSesion } from '@/hooks/useSesion';
 import { UMBRALES } from '@/lib/ajustes';
 import { type EstadoPermiso, estadoPermiso, notificar, pedirPermiso } from '@/lib/notificaciones';
+import { authRequerido } from '@/lib/supabase';
 
 export default function Ajustes() {
   const { ajustes, cargado, actualizar } = useAjustes();
@@ -102,6 +104,8 @@ export default function Ajustes() {
         )}
       </section>
 
+      {authRequerido && <Sesion />}
+
       <section className="mt-8">
         <h2 className="text-[15px] font-semibold">Datos</h2>
         <p className="mt-1 text-[13px] leading-snug text-gris-600">
@@ -114,5 +118,30 @@ export default function Ajustes() {
         </p>
       </section>
     </>
+  );
+}
+
+/** Solo se muestra en modo multiusuario: sin `authRequerido` no hay sesión que cerrar. */
+function Sesion() {
+  const { email, salir } = useSesion();
+  const [error, setError] = useState<string | null>(null);
+
+  return (
+    <section className="mt-8">
+      <h2 className="text-[15px] font-semibold">Sesión</h2>
+      <p className="mt-1 text-[13px] text-gris-600">
+        {email ? `Has entrado como ${email}.` : 'Sesión activa.'}
+      </p>
+
+      {error && <p className="mt-2 text-[13px] text-excedido">{error}</p>}
+
+      <button
+        type="button"
+        onClick={async () => setError(await salir())}
+        className="mt-3 w-full rounded-xl border border-gris-200 bg-white px-4 py-2.5 text-[15px] font-medium text-excedido transition-colors hover:bg-gris-50"
+      >
+        Cerrar sesión
+      </button>
+    </section>
   );
 }
