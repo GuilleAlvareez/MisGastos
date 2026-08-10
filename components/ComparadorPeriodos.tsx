@@ -6,6 +6,7 @@ import { useCategorias } from '@/hooks/useCategorias';
 import { useGastos } from '@/hooks/useGastos';
 import { GRIS_SIN_CATEGORIA, SIN_CATEGORIA, colorCategoria } from '@/lib/colores';
 import { diaMes, diasDelRango, euros, sumarDias } from '@/lib/format';
+import type { Gasto } from '@/lib/types';
 
 /**
  * Periodo libre, para lo que el selector de mes no llega: un trimestre, un viaje, el
@@ -33,10 +34,15 @@ export default function ComparadorPeriodos({ desde: inicial, hasta: finalInicial
     anterior.total > 0 ? Math.round(((actual.total - anterior.total) / anterior.total) * 100) : null;
   const mediaDiaria = dias > 0 ? actual.total / dias : 0;
 
+  // Se extraen antes del memo: `actual` y `anterior` son objetos nuevos en cada render,
+  // pero sus listas de gastos solo cambian cuando cambian los datos de verdad.
+  const gastosActuales = actual.gastos;
+  const gastosAnteriores = anterior.gastos;
+
   /** Gasto por categoría en cada ventana, ordenado por el importe del periodo actual. */
   const porCategoria = useMemo(() => {
     const nombre = new Map(categorias.map((c, i) => [c.id, { nombre: c.nombre, color: colorCategoria(c, i) }]));
-    const acumula = (gastos: typeof actual.gastos) => {
+    const acumula = (gastos: Gasto[]) => {
       const acc = new Map<string, number>();
       for (const g of gastos) {
         const clave = g.categoria_id ?? '__sin__';
@@ -45,8 +51,8 @@ export default function ComparadorPeriodos({ desde: inicial, hasta: finalInicial
       return acc;
     };
 
-    const a = acumula(actual.gastos);
-    const b = acumula(anterior.gastos);
+    const a = acumula(gastosActuales);
+    const b = acumula(gastosAnteriores);
 
     return [...new Set([...a.keys(), ...b.keys()])]
       .map((clave) => {
@@ -60,7 +66,7 @@ export default function ComparadorPeriodos({ desde: inicial, hasta: finalInicial
         };
       })
       .sort((x, y) => y.ahora - x.ahora);
-  }, [actual.gastos, anterior.gastos, categorias]);
+  }, [gastosActuales, gastosAnteriores, categorias]);
 
   return (
     <section className="mt-7">
