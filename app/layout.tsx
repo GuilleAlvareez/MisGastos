@@ -1,9 +1,9 @@
 import type { Metadata, Viewport } from 'next';
 import './globals.css';
+import { HojaMovimientoProvider } from '@/components/HojaMovimiento';
 import { MesProvider } from '@/components/layout/MesContext';
 import Sidebar from '@/components/layout/Sidebar';
 import TabBar from '@/components/layout/TabBar';
-import { NuevoGastoProvider } from '@/components/NuevoGastoSheet';
 import RegistrarSW from '@/components/RegistrarSW';
 
 export const metadata: Metadata = {
@@ -43,7 +43,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="es">
       <body>
         <MesProvider>
-          <NuevoGastoProvider>
+          <HojaMovimientoProvider>
             <div className="flex min-h-screen">
               <Sidebar />
               <main className="min-w-0 flex-1">
@@ -54,7 +54,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             </div>
             <TabBar />
             <RegistrarSW />
-          </NuevoGastoProvider>
+          </HojaMovimientoProvider>
         </MesProvider>
       </body>
     </html>

@@ -1,6 +1,6 @@
 'use client';
 
-import { useNuevoGasto } from '@/components/NuevoGastoSheet';
+import { useHojaMovimiento } from '@/components/HojaMovimiento';
 import { diaMes, euros } from '@/lib/format';
 import type { GastoResuelto } from '@/lib/types';
 
@@ -10,13 +10,13 @@ import type { GastoResuelto } from '@/lib/types';
  * corregir o borrar un gasto en cualquier pantalla donde aparezca.
  */
 export default function GastoCard({ gasto }: { gasto: GastoResuelto }) {
-  const { abrir } = useNuevoGasto();
+  const { abrir } = useHojaMovimiento();
 
   return (
     <li>
       <button
         type="button"
-        onClick={() => abrir(gasto)}
+        onClick={() => abrir({ gasto })}
         aria-label={`Editar ${gasto.descripcion || gasto.categoriaNombre}, ${euros(gasto.importe)}`}
         className="flex w-full items-center gap-3 py-3 text-left transition-colors active:bg-gris-50"
       >
