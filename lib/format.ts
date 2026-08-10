@@ -69,5 +69,18 @@ export const rangoMes = (d: Date) => ({ desde: aISO(primerDia(d)), hasta: aISO(u
 /** Clave 'YYYY-MM-01' que usa la columna `mes` de la tabla presupuestos. */
 export const claveMes = (d: Date) => aISO(primerDia(d));
 
+/** Suma (o resta, con `n` negativo) días a una fecha ISO y devuelve otra fecha ISO. */
+export const sumarDias = (iso: string, n: number) => {
+  const d = new Date(`${iso}T00:00:00`);
+  d.setDate(d.getDate() + n);
+  return aISO(d);
+};
+
+/** Días que abarca un rango, contando los dos extremos: un solo día cuenta 1. */
+export const diasDelRango = (desde: string, hasta: string) => {
+  const ms = new Date(`${hasta}T00:00:00`).getTime() - new Date(`${desde}T00:00:00`).getTime();
+  return Math.floor(ms / 86_400_000) + 1;
+};
+
 export const mismoMes = (a: Date, b: Date) =>
   a.getFullYear() === b.getFullYear() && a.getMonth() === b.getMonth();

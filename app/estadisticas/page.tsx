@@ -2,6 +2,7 @@
 
 import { useMemo } from 'react';
 import EvolucionMensual, { type PuntoMes } from '@/components/charts/EvolucionMensual';
+import ComparadorPeriodos from '@/components/ComparadorPeriodos';
 import GastoPorDiaSemana, { type BarraDia } from '@/components/charts/GastoPorDiaSemana';
 import RankingCategorias, { type FilaRanking } from '@/components/charts/RankingCategorias';
 import { Cargando, ErrorAviso } from '@/components/Estado';
@@ -225,6 +226,10 @@ export default function Estadisticas() {
               <GastoPorDiaSemana datos={porDiaSemana} />
             </div>
           </section>
+
+          {/* La `key` reinicia el rango elegido al cambiar de mes, para que no quede
+              un periodo suelto que no tiene nada que ver con lo que se está mirando. */}
+          <ComparadorPeriodos key={rango.desde} desde={rango.desde} hasta={rango.hasta} />
         </>
       )}
     </>
