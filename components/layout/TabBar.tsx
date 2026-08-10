@@ -32,7 +32,7 @@ export default function TabBar() {
 
       <button
         type="button"
-        onClick={abrir}
+        onClick={() => abrir()}
         aria-label="Nuevo gasto"
         className="fixed left-1/2 z-40 flex h-14 w-14 -translate-x-1/2 items-center justify-center rounded-full bg-acento text-white shadow-fab active:bg-acento-hover md:hidden"
         style={{ bottom: 'calc(env(safe-area-inset-bottom) + 18px)' }}

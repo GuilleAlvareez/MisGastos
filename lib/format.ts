@@ -33,6 +33,27 @@ export const resumenMesCorto = (d: Date) =>
 
 export const porcentaje = (n: number) => `${Math.round(n)}%`;
 
+// ---- importes que se teclean ----
+
+/**
+ * Normaliza lo que el usuario escribe en un campo de importe: fuera todo lo que no
+ * sea cifra o separador, el punto pasa a coma, y queda un único separador con dos
+ * céntimos como máximo. Así '1.2.3' → '1,23' y nunca se llega a un valor imposible
+ * de interpretar que dejaría el botón de guardar muerto sin explicación.
+ */
+export function sanearImporte(texto: string) {
+  const limpio = texto.replace(/[^0-9.,]/g, '').replace(/\./g, ',');
+  const [entera, ...resto] = limpio.split(',');
+  if (resto.length === 0) return entera;
+  return `${entera},${resto.join('').slice(0, 2)}`;
+}
+
+/** Convierte a número el texto ya saneado de un campo de importe. NaN si está vacío. */
+export const importeANumero = (texto: string) => Number(sanearImporte(texto).replace(',', '.'));
+
+/** Muestra un número en el formato que espera `sanearImporte` ('7.5' → '7,5'). */
+export const numeroAImporte = (n: number) => String(n).replace('.', ',');
+
 // ---- fechas ----
 
 export const aISO = (d: Date) =>

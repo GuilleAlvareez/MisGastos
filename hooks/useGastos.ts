@@ -1,7 +1,8 @@
 'use client';
 
 import { useCallback, useEffect, useState } from 'react';
-import { avisarDatosCambiados, suscribirDatos } from '@/lib/eventos';
+import { useEscritura } from '@/hooks/useEscritura';
+import { suscribirDatos } from '@/lib/eventos';
 import { ERROR_SIN_CONFIG, supabase, supabaseConfigurado } from '@/lib/supabase';
 import type { Gasto } from '@/lib/types';
 
@@ -61,21 +62,30 @@ export function useGastos({ desde, hasta, categoriaId }: FiltroGastos) {
   return { gastos, total, cargando, error, recargar };
 }
 
-/** Alta de gasto suelta, sin depender de un rango concreto (la usa el formulario del FAB). */
-export function useCrearGasto() {
-  const [guardando, setGuardando] = useState(false);
+/**
+ * Escrituras sueltas, sin depender de un rango concreto (las usa la hoja del FAB).
+ * Cada función devuelve el mensaje de error o `null` si ha ido bien.
+ */
+export function useGuardarGasto() {
+  const { escribir, guardando } = useEscritura();
 
-  const crear = useCallback(async (g: NuevoGasto): Promise<string | null> => {
-    if (!supabaseConfigurado) return ERROR_SIN_CONFIG;
-    setGuardando(true);
-    const { error } = await supabase.from('gastos').insert(g);
-    setGuardando(false);
-    if (error) return error.message;
-    avisarDatosCambiados();
-    return null;
-  }, []);
+  const crear = useCallback(
+    (g: NuevoGasto) => escribir(() => supabase.from('gastos').insert(g).select('id')),
+    [escribir],
+  );
 
-  return { crear, guardando };
+  const actualizar = useCallback(
+    (id: string, g: NuevoGasto) =>
+      escribir(() => supabase.from('gastos').update(g).eq('id', id).select('id')),
+    [escribir],
+  );
+
+  const eliminar = useCallback(
+    (id: string) => escribir(() => supabase.from('gastos').delete().eq('id', id).select('id')),
+    [escribir],
+  );
+
+  return { crear, actualizar, eliminar, guardando };
 }
 
 /** Total gastado por mes ('YYYY-MM') en un rango; para el gráfico de evolución. */

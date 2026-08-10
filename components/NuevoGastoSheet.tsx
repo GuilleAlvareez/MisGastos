@@ -1,26 +1,42 @@
 'use client';
 
 import { createContext, useContext, useEffect, useMemo, useState } from 'react';
+import CampoImporte from '@/components/CampoImporte';
 import { useCategorias } from '@/hooks/useCategorias';
-import { useCrearGasto } from '@/hooks/useGastos';
+import { useGuardarGasto } from '@/hooks/useGastos';
 import { colorCategoria } from '@/lib/colores';
-import { aISO } from '@/lib/format';
+import { aISO, importeANumero, numeroAImporte, sanearImporte } from '@/lib/format';
+import type { Gasto } from '@/lib/types';
 
-type Ctx = { abrir: () => void; cerrar: () => void; abierto: boolean };
+/** `abrir()` da de alta; `abrir(gasto)` edita ese gasto en la misma hoja. */
+type Ctx = { abrir: (gasto?: Gasto) => void; cerrar: () => void; abierto: boolean };
 
 const GastoCtx = createContext<Ctx | null>(null);
 
 export function NuevoGastoProvider({ children }: { children: React.ReactNode }) {
+  const [editando, setEditando] = useState<Gasto | null>(null);
   const [abierto, setAbierto] = useState(false);
+
   const valor = useMemo<Ctx>(
-    () => ({ abierto, abrir: () => setAbierto(true), cerrar: () => setAbierto(false) }),
+    () => ({
+      abierto,
+      abrir: (gasto?: Gasto) => {
+        setEditando(gasto ?? null);
+        setAbierto(true);
+      },
+      cerrar: () => setAbierto(false),
+    }),
     [abierto],
   );
 
   return (
     <GastoCtx.Provider value={valor}>
       {children}
-      {abierto && <Hoja cerrar={valor.cerrar} />}
+      {/*
+        Se desmonta al cerrar y la `key` cambia con el objetivo: así el formulario
+        arranca limpio también si se pide abrir otro gasto sin cerrar antes.
+      */}
+      {abierto && <Hoja key={editando?.id ?? 'nuevo'} gasto={editando} cerrar={valor.cerrar} />}
     </GastoCtx.Provider>
   );
 }
@@ -31,15 +47,18 @@ export function useNuevoGasto() {
   return ctx;
 }
 
-function Hoja({ cerrar }: { cerrar: () => void }) {
+function Hoja({ gasto, cerrar }: { gasto: Gasto | null; cerrar: () => void }) {
   const { categorias } = useCategorias();
-  const { crear, guardando } = useCrearGasto();
+  const { crear, actualizar, eliminar, guardando } = useGuardarGasto();
+  const editando = gasto !== null;
 
-  const [importe, setImporte] = useState('');
-  const [categoriaId, setCategoriaId] = useState<string | null>(null);
-  const [descripcion, setDescripcion] = useState('');
-  const [fecha, setFecha] = useState(() => aISO(new Date()));
+  const [importe, setImporte] = useState(() => (gasto ? numeroAImporte(gasto.importe) : ''));
+  const [categoriaId, setCategoriaId] = useState<string | null>(gasto?.categoria_id ?? null);
+  const [descripcion, setDescripcion] = useState(gasto?.descripcion ?? '');
+  const [fecha, setFecha] = useState(() => gasto?.fecha ?? aISO(new Date()));
   const [error, setError] = useState<string | null>(null);
+  // El borrado es en dos toques dentro de la propia hoja, sin diálogo del sistema.
+  const [confirmandoBorrado, setConfirmandoBorrado] = useState(false);
 
   // Escape cierra, y el fondo no debe hacer scroll mientras la hoja está abierta.
   useEffect(() => {
@@ -53,26 +72,28 @@ function Hoja({ cerrar }: { cerrar: () => void }) {
     };
   }, [cerrar]);
 
-  const valor = Number(importe.replace(',', '.'));
+  const valor = importeANumero(importe);
   const valido = Number.isFinite(valor) && valor > 0;
 
   async function guardar() {
     if (!valido || guardando) return;
-    const msg = await crear({
+    const datos = {
       importe: Math.round(valor * 100) / 100,
       categoria_id: categoriaId,
       descripcion: descripcion.trim() || null,
       fecha,
-    });
+    };
+    const msg = gasto ? await actualizar(gasto.id, datos) : await crear(datos);
     if (msg) setError(msg);
     else cerrar();
   }
 
-  const [entera, decimal] = importe.includes(',')
-    ? importe.split(',')
-    : importe.includes('.')
-      ? importe.split('.')
-      : [importe, ''];
+  async function borrar() {
+    if (!gasto || guardando) return;
+    const msg = await eliminar(gasto.id);
+    if (msg) setError(msg);
+    else cerrar();
+  }
 
   return (
     <div className="fixed inset-0 z-50 flex md:items-center md:justify-center md:bg-gris-900/30 md:p-6">
@@ -84,7 +105,7 @@ function Hoja({ cerrar }: { cerrar: () => void }) {
           <button type="button" onClick={cerrar} className="text-[15px] text-gris-600">
             Cancelar
           </button>
-          <p className="text-[15px] font-semibold">Nuevo gasto</p>
+          <p className="text-[15px] font-semibold">{editando ? 'Editar gasto' : 'Nuevo gasto'}</p>
           <button
             type="button"
             onClick={guardar}
@@ -96,34 +117,14 @@ function Hoja({ cerrar }: { cerrar: () => void }) {
         </header>
 
         <div className="flex-1 overflow-y-auto px-5 pb-6 pt-7">
-          <p className="etiqueta text-center">Importe</p>
-          <label className="mt-2 flex items-baseline justify-center gap-1">
-            <span className="sr-only">Importe en euros</span>
-            <span className="relative">
-              {/* Espejo visual del valor: separa céntimos en gris como en el diseño. */}
-              <span aria-hidden className="text-[44px] font-semibold tabular-nums tracking-tight">
-                {entera || '0'}
-                {importe.includes(',') || importe.includes('.') ? (
-                  <>
-                    <span>,</span>
-                    <span>{decimal}</span>
-                  </>
-                ) : null}
-              </span>
-              <input
-                inputMode="decimal"
-                autoFocus
-                value={importe}
-                onChange={(e) => {
-                  const v = e.target.value.replace(/[^0-9.,]/g, '');
-                  setImporte(v);
-                  setError(null);
-                }}
-                className="absolute inset-0 h-full w-full bg-transparent text-center text-[44px] font-semibold tabular-nums tracking-tight text-transparent caret-gris-900 outline-none"
-              />
-            </span>
-            <span className="text-[28px] font-medium text-gris-400">€</span>
-          </label>
+          <CampoImporte
+            autoFocus
+            valor={importe}
+            alCambiar={(v) => {
+              setImporte(v);
+              setError(null);
+            }}
+          />
 
           <p className="etiqueta mt-8">Categoría</p>
           <div className="mt-3 flex flex-wrap gap-2">
@@ -167,6 +168,43 @@ function Hoja({ cerrar }: { cerrar: () => void }) {
             </label>
           </div>
 
+          {editando && (
+            <div className="mt-6">
+              {confirmandoBorrado ? (
+                <div className="rounded-tarjeta border border-excedido/20 bg-excedido-bg px-4 py-3">
+                  <p className="text-[13px] text-excedido">
+                    Se eliminará este gasto. No se puede deshacer.
+                  </p>
+                  <div className="mt-2.5 flex gap-2">
+                    <button
+                      type="button"
+                      onClick={borrar}
+                      disabled={guardando}
+                      className="flex-1 rounded-xl bg-excedido px-3 py-2.5 text-[15px] font-semibold text-white disabled:opacity-40"
+                    >
+                      {guardando ? 'Eliminando…' : 'Sí, eliminar'}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setConfirmandoBorrado(false)}
+                      className="flex-1 rounded-xl border border-gris-200 px-3 py-2.5 text-[15px] text-gris-600"
+                    >
+                      Cancelar
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <button
+                  type="button"
+                  onClick={() => setConfirmandoBorrado(true)}
+                  className="w-full py-2 text-[15px] font-medium text-excedido"
+                >
+                  Eliminar gasto
+                </button>
+              )}
+            </div>
+          )}
+
           {error && (
             <p className="mt-4 rounded-xl bg-excedido-bg px-3 py-2 text-sm text-excedido">{error}</p>
           )}
@@ -177,7 +215,7 @@ function Hoja({ cerrar }: { cerrar: () => void }) {
           style={{ paddingBottom: 'max(1rem, env(safe-area-inset-bottom))' }}
         >
           <button type="button" onClick={guardar} disabled={!valido || guardando} className="boton-primario">
-            {guardando ? 'Guardando…' : 'Guardar gasto'}
+            {guardando ? 'Guardando…' : editando ? 'Guardar cambios' : 'Guardar gasto'}
           </button>
         </div>
       </div>

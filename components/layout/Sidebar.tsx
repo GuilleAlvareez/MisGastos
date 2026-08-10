@@ -36,7 +36,7 @@ export default function Sidebar() {
         })}
       </nav>
 
-      <button type="button" onClick={abrir} className="boton-primario mt-auto gap-2">
+      <button type="button" onClick={() => abrir()} className="boton-primario mt-auto gap-2">
         <IconoMas className="h-4 w-4" />
         Nuevo gasto
       </button>
