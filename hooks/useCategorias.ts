@@ -1,14 +1,19 @@
 'use client';
 
 import { useCallback, useEffect, useState } from 'react';
+import { useEscritura } from '@/hooks/useEscritura';
 import { suscribirDatos } from '@/lib/eventos';
 import { ERROR_SIN_CONFIG, supabase, supabaseConfigurado } from '@/lib/supabase';
 import type { Categoria } from '@/lib/types';
 
-/**
- * Solo lectura: las categorías se gestionan fuera de la app (Supabase / n8n).
- * Aquí se consumen para colores, nombres y presupuestos de referencia.
- */
+export type NuevaCategoria = {
+  nombre: string;
+  color: string;
+  /** null = la categoría no tiene presupuesto de referencia. */
+  presupuesto_mensual: number | null;
+};
+
+/** Las categorías se leen en casi todas las pantallas; se gestionan en /categorias. */
 export function useCategorias() {
   const [categorias, setCategorias] = useState<Categoria[]>([]);
   const [cargando, setCargando] = useState(true);
@@ -45,4 +50,32 @@ export function useCategorias() {
   }, [recargar]);
 
   return { categorias, cargando, error, recargar };
+}
+
+/** Alta, edición y borrado de categorías. Devuelven el mensaje de error o `null`. */
+export function useGuardarCategoria() {
+  const { escribir, guardando } = useEscritura();
+
+  const crear = useCallback(
+    (c: NuevaCategoria) => escribir(() => supabase.from('categorias').insert(c).select('id')),
+    [escribir],
+  );
+
+  const actualizar = useCallback(
+    (id: string, c: NuevaCategoria) =>
+      escribir(() => supabase.from('categorias').update(c).eq('id', id).select('id')),
+    [escribir],
+  );
+
+  /**
+   * Borrar una categoría no borra su histórico: la FK de `gastos` es
+   * `on delete set null`, así que esos gastos pasan a "Sin categoría". Los
+   * presupuestos de esa categoría sí caen con ella (`on delete cascade`).
+   */
+  const eliminar = useCallback(
+    (id: string) => escribir(() => supabase.from('categorias').delete().eq('id', id).select('id')),
+    [escribir],
+  );
+
+  return { crear, actualizar, eliminar, guardando };
 }

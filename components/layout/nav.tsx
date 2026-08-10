@@ -58,6 +58,16 @@ export function IconoIngresos(p: IconoProps) {
   );
 }
 
+/** Categorías: etiquetas apiladas. */
+export function IconoCategorias(p: IconoProps) {
+  return (
+    <svg {...base} {...p}>
+      <path d="M3 7.5A2.5 2.5 0 0 1 5.5 5h4.7c.5 0 1 .2 1.4.6l7 7a2 2 0 0 1 0 2.8l-3.2 3.2a2 2 0 0 1-2.8 0l-7-7A2 2 0 0 1 5 10.2z" />
+      <circle cx="8" cy="10" r="1.2" />
+    </svg>
+  );
+}
+
 export function IconoMas(p: IconoProps) {
   return (
     <svg {...base} strokeWidth={2.2} {...p}>
@@ -96,6 +106,12 @@ export const RUTAS_PRINCIPALES: Ruta[] = [
 /** Uso ocasional: en escritorio van en un segundo grupo del sidebar. */
 export const RUTAS_SECUNDARIAS: Ruta[] = [
   { href: '/ingresos', etiqueta: 'Ingresos', Icono: IconoIngresos, pista: 'Nómina y entradas sueltas' },
+  {
+    href: '/categorias',
+    etiqueta: 'Categorías',
+    Icono: IconoCategorias,
+    pista: 'Colores y presupuestos',
+  },
 ];
 
 /**
