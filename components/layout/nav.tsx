@@ -68,6 +68,16 @@ export function IconoCategorias(p: IconoProps) {
   );
 }
 
+/** Exportar: flecha que sale de una caja. */
+export function IconoExportar(p: IconoProps) {
+  return (
+    <svg {...base} {...p}>
+      <path d="M12 16V4m0 0 4 4m-4-4-4 4" />
+      <path d="M4 15v3a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-3" />
+    </svg>
+  );
+}
+
 export function IconoMas(p: IconoProps) {
   return (
     <svg {...base} strokeWidth={2.2} {...p}>
@@ -112,6 +122,7 @@ export const RUTAS_SECUNDARIAS: Ruta[] = [
     Icono: IconoCategorias,
     pista: 'Colores y presupuestos',
   },
+  { href: '/exportar', etiqueta: 'Exportar', Icono: IconoExportar, pista: 'Descargar en CSV' },
 ];
 
 /**
