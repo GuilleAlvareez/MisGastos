@@ -78,6 +78,16 @@ export function IconoExportar(p: IconoProps) {
   );
 }
 
+/** Ajustes: rueda dentada simplificada, cuatro muescas y eje. */
+export function IconoAjustes(p: IconoProps) {
+  return (
+    <svg {...base} {...p}>
+      <circle cx="12" cy="12" r="3.2" />
+      <path d="M12 2.5v3M12 18.5v3M2.5 12h3M18.5 12h3M5.3 5.3l2.1 2.1M16.6 16.6l2.1 2.1M18.7 5.3l-2.1 2.1M7.4 16.6l-2.1 2.1" />
+    </svg>
+  );
+}
+
 export function IconoMas(p: IconoProps) {
   return (
     <svg {...base} strokeWidth={2.2} {...p}>
@@ -123,6 +133,7 @@ export const RUTAS_SECUNDARIAS: Ruta[] = [
     pista: 'Colores y presupuestos',
   },
   { href: '/exportar', etiqueta: 'Exportar', Icono: IconoExportar, pista: 'Descargar en CSV' },
+  { href: '/ajustes', etiqueta: 'Ajustes', Icono: IconoAjustes, pista: 'Avisos de presupuesto' },
 ];
 
 /**

@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from 'next';
 import './globals.css';
+import AlertasPresupuesto from '@/components/AlertasPresupuesto';
 import { HojaMovimientoProvider } from '@/components/HojaMovimiento';
 import { MesProvider } from '@/components/layout/MesContext';
 import Sidebar from '@/components/layout/Sidebar';
@@ -54,6 +55,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             </div>
             <TabBar />
             <RegistrarSW />
+            <AlertasPresupuesto />
           </HojaMovimientoProvider>
         </MesProvider>
       </body>

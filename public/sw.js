@@ -15,6 +15,18 @@ self.addEventListener('activate', (e) => {
   self.clients.claim();
 });
 
+// Tocar un aviso de presupuesto trae al frente la app si ya está abierta, y si no la
+// abre en Presupuestos, que es la pantalla que explica el aviso.
+self.addEventListener('notificationclick', (e) => {
+  e.notification.close();
+  e.waitUntil(
+    self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then((abiertas) => {
+      const ventana = abiertas.find((c) => 'focus' in c);
+      return ventana ? ventana.focus() : self.clients.openWindow('/presupuestos');
+    }),
+  );
+});
+
 self.addEventListener('fetch', (e) => {
   const url = new URL(e.request.url);
   const esEstatico = e.request.method === 'GET' && ESTATICOS.includes(url.pathname);
